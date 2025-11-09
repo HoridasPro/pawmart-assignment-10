@@ -33,7 +33,12 @@ async function run() {
 
     // For the get all the data
     app.get("/products", async (req, res) => {
-      const cursor = productsCollection.find();
+      const category = req.query.category;
+      const query = {};
+      if (category) {
+        query.category = { $regex: new RegExp(category, "i") };
+      }
+      const cursor = productsCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
