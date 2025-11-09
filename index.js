@@ -31,18 +31,25 @@ async function run() {
     const pawMartProject = client.db("pawMartProject");
     const productsCollection = pawMartProject.collection("products");
 
+    // For the get all the data
+    app.get("/products", async (req, res) => {
+      const cursor = productsCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // For the get only one data
+    app.get("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await productsCollection.findOne(query);
+      res.send(result);
+    });
+
     // For the post
     app.post("/products", async (req, res) => {
       const newProduct = req.body;
       const result = await productsCollection.insertOne(newProduct);
-      res.send(result);
-    });
-
-    // For the delete
-    app.delete("/products/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await productsCollection.deleteOne(query);
       res.send(result);
     });
 
@@ -58,6 +65,14 @@ async function run() {
         },
       };
       const result = await productsCollection.updateOne(query, update);
+      res.send(result);
+    });
+
+    // For the delete
+    app.delete("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await productsCollection.deleteOne(query);
       res.send(result);
     });
 
