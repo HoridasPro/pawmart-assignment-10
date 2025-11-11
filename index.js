@@ -30,8 +30,10 @@ async function run() {
     await client.connect();
     const pawMartProject = client.db("pawMartProject");
     const productsCollection = pawMartProject.collection("products");
+    const orderCollection = pawMartProject.collection("orders");
+    const addListingCollection = pawMartProject.collection("add Listing");
 
-    // For the get all the data
+    // Get all the data for the categories
     app.get("/products", async (req, res) => {
       const category = req.query.category;
       const query = {};
@@ -51,10 +53,48 @@ async function run() {
       res.send(result);
     });
 
+    // For latest product
+    app.get("/latest-products", async (req, res) => {
+      const cursor = productsCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    // get for the orders
+    app.get("/orders/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { orderProduct: id };
+      const cursor = orderCollection.find(query).sort({ price: -1 });
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    //For the my listing
+    app.get("/myListings", async (req, res) => {
+      const email = req.query.email;
+      const cursor = addListingCollection
+        .find({ email: email })
+        .sort({ date: -1 });
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     // For the post
     app.post("/products", async (req, res) => {
       const newProduct = req.body;
       const result = await productsCollection.insertOne(newProduct);
+      res.send(result);
+    });
+
+    // For the post to orders
+    app.post("/orders", async (req, res) => {
+      const newProduct = req.body;
+      const result = await orderCollection.insertOne(newProduct);
+      res.send(result);
+    });
+    // For the post to orders
+    app.post("/addListing", async (req, res) => {
+      const newProduct = req.body;
+      const result = await addListingCollection.insertOne(newProduct);
       res.send(result);
     });
 
@@ -74,10 +114,10 @@ async function run() {
     });
 
     // For the delete
-    app.delete("/products/:id", async (req, res) => {
+    app.delete("/addListing/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      const result = await productsCollection.deleteOne(query);
+      const result = await addListingCollection.deleteOne(query);
       res.send(result);
     });
 
