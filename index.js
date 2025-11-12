@@ -77,6 +77,21 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+    //For the my orders
+    app.get("/myOrders", async (req, res) => {
+      const email = req.query.email;
+      const cursor = orderCollection.find({ email: email }).sort({ date: -1 });
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // Get data from the add listing
+    app.get("/addListing/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await addListingCollection.findOne(query);
+      res.send(result);
+    });
 
     // For the post
     app.post("/products", async (req, res) => {
@@ -99,7 +114,7 @@ async function run() {
     });
 
     // For the patch
-    app.patch("/products/:id", async (req, res) => {
+    app.patch("/addListing/:id", async (req, res) => {
       const id = req.params.id;
       const updatedProduct = req.body;
       const query = { _id: new ObjectId(id) };
@@ -109,7 +124,7 @@ async function run() {
           price: updatedProduct.price,
         },
       };
-      const result = await productsCollection.updateOne(query, update);
+      const result = await addListingCollection.updateOne(query, update);
       res.send(result);
     });
 
@@ -120,7 +135,6 @@ async function run() {
       const result = await addListingCollection.deleteOne(query);
       res.send(result);
     });
-
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
