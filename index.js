@@ -67,6 +67,23 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+    // get for the Download pdf
+    app.get("/orders", async (req, res) => {
+      const cursor = orderCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.get("/search", async (req, res) => {
+      const search_text = req.query.search;
+      let query = {};
+      if (search_text) {
+        query = { product_name: { $regex: search_text, $options: "i" } };
+      }
+
+      const result = await productsCollection.find(query).toArray();
+      res.send(result);
+    });
 
     //For the my listing
     app.get("/myListings", async (req, res) => {
@@ -84,19 +101,19 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
-
-    // Get data from the add listing
+    app.get("/addListing", async (req, res) => {
+      const email = req.query.email;
+      const cursor = addListingCollection
+        .find({ email: email })
+        .sort({ date: -1 });
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    // For the update
     app.get("/addListing/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await addListingCollection.findOne(query);
-      res.send(result);
-    });
-
-    // For the post
-    app.post("/products", async (req, res) => {
-      const newProduct = req.body;
-      const result = await productsCollection.insertOne(newProduct);
       res.send(result);
     });
 
@@ -120,8 +137,14 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const update = {
         $set: {
-          name: updatedProduct.name,
+          name: updatedProduct.product_name,
+          category: updatedProduct.category,
           price: updatedProduct.price,
+          location: updatedProduct.location,
+          description: updatedProduct.description,
+          image: updatedProduct.photo,
+          date: updatedProduct.date,
+          email: updatedProduct.email,
         },
       };
       const result = await addListingCollection.updateOne(query, update);
