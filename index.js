@@ -1,16 +1,20 @@
 const express = require("express");
-require('dotenv').config();
+require("dotenv").config();
 const cors = require("cors");
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
-const port = process.env.PORT || 3000;
+const port = 3000;
 
-// middleware
 app.use(cors());
 app.use(express.json());
-const uri =
-  `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.mulyrzf.mongodb.net/?appName=Cluster0`;
 
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
+const { MongoClient, ServerApiVersion } = require("mongodb");
+const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.mulyrzf.mongodb.net/?appName=Cluster0`;
+
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -19,29 +23,14 @@ const client = new MongoClient(uri, {
   },
 });
 
-app.get("/", (req, res) => {
-  res.send("hello welcome to my project");
-});
-
 async function run() {
   try {
-    // await client.connect();
+    // Connect the client to the server	(optional starting in v4.7)
+    await client.connect();
     const pawMartProject = client.db("pawMartProject");
     const productsCollection = pawMartProject.collection("products");
     const orderCollection = pawMartProject.collection("orders");
     const addListingCollection = pawMartProject.collection("add Listing");
-
-    // Get all the data for the categories
-    app.get("/products", async (req, res) => {
-      const category = req.query.category;
-      const query = {};
-      if (category) {
-        query.category = { $regex: new RegExp(category, "i") };
-      }
-      const cursor = productsCollection.find(query);
-      const result = await cursor.toArray();
-      res.send(result);
-    });
 
     // For the get only one data
     app.get("/products/:id", async (req, res) => {
@@ -57,6 +46,19 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+
+    // Get all the data for the categories
+    app.get("/products", async (req, res) => {
+      const category = req.query.category;
+      const query = {};
+      if (category) {
+        query.category = { $regex: new RegExp(category, "i") };
+      }
+      const cursor = productsCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     // get for the orders
     app.get("/orders/:id", async (req, res) => {
       const id = req.params.id;
@@ -156,16 +158,19 @@ async function run() {
       const result = await addListingCollection.deleteOne(query);
       res.send(result);
     });
-    // await client.db("admin").command({ ping: 1 });
-    // console.log(
-    //   "Pinged your deployment. You successfully connected to MongoDB!"
-    // );
+
+    // Send a ping to confirm a successful connection
+    await client.db("admin").command({ ping: 1 });
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
+    // Ensures that the client will close when you finish/error
     // await client.close();
   }
 }
 run().catch(console.dir);
 
 app.listen(port, () => {
-  console.log(`Port is runnign on this port ${port}`);
+  console.log(`Example app listening on port ${port}`);
 });
