@@ -55,7 +55,7 @@ async function run() {
 
     // For latest product
     app.get("/latest-products", async (req, res) => {
-      const cursor = productsCollection.find();
+      const cursor = productsCollection.find().skip(4).limit(6);
       const result = await cursor.toArray();
       res.send(result);
     });
