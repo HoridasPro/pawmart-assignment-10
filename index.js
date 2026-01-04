@@ -14,7 +14,6 @@ app.get("/", (req, res) => {
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.mulyrzf.mongodb.net/?appName=Cluster0`;
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -67,7 +66,8 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
-    // get for the Download pdf
+
+    // The Download pdf
     app.get("/orders", async (req, res) => {
       const cursor = orderCollection.find();
       const result = await cursor.toArray();
@@ -80,7 +80,6 @@ async function run() {
       if (search_text) {
         query = { product_name: { $regex: search_text, $options: "i" } };
       }
-
       const result = await productsCollection.find(query).toArray();
       res.send(result);
     });
