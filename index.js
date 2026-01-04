@@ -48,16 +48,16 @@ async function run() {
     });
 
     // Get all the data for the categories
-    // app.get("/products", async (req, res) => {
-    //   const category = req.query.category;
-    //   const query = {};
-    //   if (category) {
-    //     query.category = { $regex: new RegExp(category, "i") };
-    //   }
-    //   const cursor = productsCollection.find(query);
-    //   const result = await cursor.toArray();
-    //   res.send(result);
-    // });
+    app.get("/products", async (req, res) => {
+      const category = req.query.category;
+      const query = {};
+      if (category) {
+        query.category = { $regex: new RegExp(category, "i") };
+      }
+      const cursor = productsCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
     // PRODUCTS with Pagination + Category
     app.get("/products", async (req, res) => {
