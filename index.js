@@ -26,7 +26,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     const pawMartProject = client.db("pawMartProject");
     const productsCollection = pawMartProject.collection("products");
     const orderCollection = pawMartProject.collection("orders");
@@ -35,7 +35,7 @@ async function run() {
     // For the get only one data
     app.get("/products/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new  ObjectId(id) };
+      const query = { _id: new ObjectId(id) };
       const result = await productsCollection.findOne(query);
       res.send(result);
     });
@@ -48,15 +48,80 @@ async function run() {
     });
 
     // Get all the data for the categories
+    // app.get("/products", async (req, res) => {
+    //   const category = req.query.category;
+    //   const query = {};
+    //   if (category) {
+    //     query.category = { $regex: new RegExp(category, "i") };
+    //   }
+    //   const cursor = productsCollection.find(query);
+    //   const result = await cursor.toArray();
+    //   res.send(result);
+    // });
+
+    // PRODUCTS with Pagination + Category
     app.get("/products", async (req, res) => {
-      const category = req.query.category;
-      const query = {};
-      if (category) {
-        query.category = { $regex: new RegExp(category, "i") };
+      try {
+        const category = req.query.category;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 2;
+        const skip = (page - 1) * limit;
+
+        const query = {};
+        if (category && category !== "All") {
+          query.category = { $regex: new RegExp(category, "i") };
+        }
+
+        const totalProducts = await productsCollection.countDocuments(query);
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        const products = await productsCollection
+          .find(query)
+          .skip(skip)
+          .limit(limit)
+          .toArray();
+
+        res.send({
+          products,
+          totalProducts,
+          totalPages,
+          currentPage: page,
+        });
+      } catch (err) {
+        res.status(500).send({ message: "Server error" });
       }
-      const cursor = productsCollection.find(query);
-      const result = await cursor.toArray();
-      res.send(result);
+    });
+
+    // SEARCH with Pagination
+    app.get("/search", async (req, res) => {
+      try {
+        const search = req.query.search || "";
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 2;
+        const skip = (page - 1) * limit;
+
+        const query = {
+          name: { $regex: new RegExp(search, "i") },
+        };
+
+        const totalProducts = await productsCollection.countDocuments(query);
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        const products = await productsCollection
+          .find(query)
+          .skip(skip)
+          .limit(limit)
+          .toArray();
+
+        res.send({
+          products,
+          totalProducts,
+          totalPages,
+          currentPage: page,
+        });
+      } catch (err) {
+        res.status(500).send({ message: "Server error" });
+      }
     });
 
     // get for the orders
@@ -160,7 +225,7 @@ async function run() {
     });
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
